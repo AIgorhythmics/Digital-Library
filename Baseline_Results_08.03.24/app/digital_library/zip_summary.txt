@@ -1,0 +1,5 @@
+File: arxiv-dataset/ | Size: 0.00B
+File: arxiv-dataset/train.txt | Size: 13.29GB
+File: arxiv-dataset/vocab | Size: 2.34MB
+File: arxiv-dataset/test.txt | Size: 417.72MB
+File: arxiv-dataset/val.txt | Size: 417.00MB

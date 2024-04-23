@@ -46,7 +46,7 @@
             console.log("Modified paper ID:", modifiedPaperId);
             console.log("Type of paperId:", typeof modifiedPaperId);
             $.ajax({
-                url: `/summary/${encodeURIComponent(modifiedPaperId)}/`,
+                url: '/search/summary/' + modifiedPaperId,
                 type: 'GET',
                 success: function(response) {
                     $(`#summary-${paperId}`).html(`<strong>Summary:</strong> ${response.summary}`);

@@ -130,11 +130,10 @@ import requests
 import fitz  # PyMuPDF
 
 def download_and_extract_text(arxiv_id):
-    print("heherere", arxiv_id)
+
     pdf_url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
     try:
         response = requests.get(pdf_url)
-        print(response.text)
         response.raise_for_status()  # Will raise an HTTPError for bad requests (400+)
         pdf_path = f"{arxiv_id}.pdf"
         with open(pdf_path, "wb") as f:

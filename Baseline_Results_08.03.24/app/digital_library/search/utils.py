@@ -25,6 +25,12 @@ from nltk.stem import PorterStemmer
 from nltk.tokenize import RegexpTokenizer
 from sklearn.metrics.pairwise import cosine_similarity
 import os
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import TfidfVectorizer
+from wordcloud import WordCloud
+from io import BytesIO
+import base64
 # from django.conf import settings
 # file_path = os.path.join(settings.BASE_DIR, 'search')
 
@@ -124,9 +130,11 @@ import requests
 import fitz  # PyMuPDF
 
 def download_and_extract_text(arxiv_id):
+    print("heherere", arxiv_id)
     pdf_url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
     try:
         response = requests.get(pdf_url)
+        print(response.text)
         response.raise_for_status()  # Will raise an HTTPError for bad requests (400+)
         pdf_path = f"{arxiv_id}.pdf"
         with open(pdf_path, "wb") as f:
@@ -180,3 +188,40 @@ def generate_summary(arxiv_id):
     summary_text = "".join(response.text for response in responses)
     print(summary_text)
     return summary_text
+
+def generate_word_cloud(text):
+    text = preprocess_text(text)
+    combined_text = " ".join(text)
+
+    vectorizer = TfidfVectorizer(stop_words='english')
+    tfidf_matrix = vectorizer.fit_transform([combined_text])
+    feature_names = np.array(vectorizer.get_feature_names_out())
+    tfidf_scores = np.array(tfidf_matrix.sum(axis=0)).flatten()
+
+    sorted_indices = np.argsort(tfidf_scores)[::-1]
+    top_features = feature_names[sorted_indices][:20]
+
+    # Generate word cloud
+    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(' '.join(top_features))
+
+    # Save to BytesIO object
+    image_io = BytesIO()
+    wordcloud.to_image().save(image_io, 'PNG')
+    image_io.seek(0)  # Go to the beginning of the BytesIO stream
+
+    # Base64 encode
+    image_base64 = base64.b64encode(image_io.getvalue()).decode('utf-8')
+
+    return image_base64
+
+def preprocess_text(text):
+    text = re.sub(r'##.*', '', text)
+    text = re.sub(r'.*?:\s*\n', '', text)
+    text = re.sub(r'\*', '', text)
+    lines = text.split('\n')
+    lines = [line.strip() for line in lines if line.strip()]
+
+    return lines
+
+def calculate_rouge_score(text):
+    pass

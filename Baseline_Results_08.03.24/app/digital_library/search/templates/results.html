@@ -10,7 +10,7 @@
             background-color: #333; /* Dark background for dark mode */
             color: #fff; /* Light text for readability in dark mode */
         }
-        .dark-mode .btn-primary {
+        .dark-mode .btn-primary, .dark-mode .btn-secondary {
             background-color: #666;
             border-color: #666;
         }
@@ -31,22 +31,64 @@
             width: 100%;
             max-width: 500px; /* Adjust according to your preference */
         }
+        .btn-disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
         function getSummary(paperId, buttonElement) {
+            console.log("Original paper ID:", paperId);
+        
+            var modifiedPaperId = paperId.replace(/_/g, '/');
+           
+            console.log("Modified paper ID:", modifiedPaperId);
+            console.log("Type of paperId:", typeof modifiedPaperId);
             $.ajax({
-                url: `/summary/${encodeURIComponent(paperId)}/`, // Ensure proper encoding for URL
+                url: `/summary/${encodeURIComponent(modifiedPaperId)}/`,
                 type: 'GET',
                 success: function(response) {
                     $(`#summary-${paperId}`).html(`<strong>Summary:</strong> ${response.summary}`);
-                    $(buttonElement).hide(); // Optionally hide the button after loading the summary
+                    $(buttonElement).hide(); // Optionally hide the summary button
+                    $(`#rouge-${paperId}`).removeClass('btn-disabled'); // Enable ROUGE score button
                 },
                 error: function() {
                     $(`#summary-${paperId}`).html(`<p>Summary could not be loaded.</p>`);
                 }
             });
         }
+        
+        
+
+        function getROUGEScore(paperId) {
+            $.ajax({
+                url: `/rouge-score/${encodeURIComponent(paperId)}/`,
+                type: 'GET',
+                success: function(response) {
+                    $(`#rouge-${paperId}`).html(`ROUGE Score: ${response.score}`);
+                },
+                error: function() {
+                    $(`#rouge-${paperId}`).html(`Failed to load ROUGE score.`);
+                }
+            });
+        }
+
+        function displayWordCloud(paperId) {
+            let modifiedPaperId = paperId.replace('/', '_')
+            let encodedPaperId = encodeURIComponent(paperId);
+            $.ajax({
+                url: `/wordcloud/${encodedPaperId}/`,
+                type: 'GET',
+                success: function(response) {
+                    $(`#wordcloud-${paperId}`).html(`<img src="data:image/png;base64,${response.image}" alt="WordCloud">`);
+                },
+                error: function() {
+                    $(`#wordcloud-${paperId}`).html(`Failed to load wordcloud.`);
+                }
+            });
+        }
+
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
         }
@@ -61,10 +103,13 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ paper.title }}</h5>
                         <p class="card-text">{{ paper.abstract }}</p>
-                        {% if forloop.counter <= 3 %}
                         <button onclick="getSummary('{{ paper.id }}', this)">Get Summary</button>
                         <div id="summary-{{ paper.id }}" style="margin-top: 20px;"></div>
+                        {% if forloop.counter <= 3 %}
+                        <button id="rouge-{{ paper.id }}" class="btn btn-secondary btn-disabled" onclick="getROUGEScore('{{ paper.id }}')">ROUGE Score</button>
                         {% endif %}
+                        <button onclick="displayWordCloud('{{ paper.id }}')">Display WordCloud</button>
+                        <div id="wordcloud-{{ paper.id }}" style="margin-top: 20px;"></div>
                     </div>
                 </div>
             {% endfor %}
@@ -75,7 +120,7 @@
     </div>
     <div class="toggle-container">
         <label class="dark-mode-label">
-            Dark Mode: <input type="checkbox" onclick="toggleDarkMode()">
+            Dark Mode: <input type="checkbox" onclick="toggleDarkMode()" checked>
         </label>
     </div>
 </body>

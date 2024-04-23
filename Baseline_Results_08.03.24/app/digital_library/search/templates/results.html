@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Results</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -15,8 +16,11 @@
                 <div class="card mb-3">
                     <div class="card-body">
                         <h5 class="card-title">{{ paper.title }}</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">{{ paper.author }}</h6>
                         <p class="card-text">{{ paper.abstract }}</p>
+                        {% if forloop.counter <= 3 %}
+                        <button onclick="getSummary('{{ paper.id }}', this)">Get Summary</button>
+                        <div id="summary-{{ paper.id }}" style="margin-top: 20px;"></div>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}
@@ -25,5 +29,20 @@
         {% endif %}
         <a href="/search/" class="btn btn-primary">New Search</a>
     </div>
+    <script>
+        function getSummary(paperId, buttonElement) {
+            $.ajax({
+                url: `/search/summary/${paperId}/`,
+                type: 'GET',
+                success: function(response) {
+                    $(`#summary-${paperId}`).html(`<p>${response.summary}</p>`);
+                    $(buttonElement).hide(); // Optionally hide the button after loading the summary
+                },
+                error: function() {
+                    $(`#summary-${paperId}`).html(`<p>Summary could not be loaded.</p>`);
+                }
+            });
+        }
+    </script>
 </body>
 </html>

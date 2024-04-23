@@ -2,8 +2,28 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import re 
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+from nltk.tokenize import RegexpTokenizer
+def preprocess_and_clean(text):
+    text = text.replace('\n', " ").strip().lower()
+    text = re.sub(r'\d+', '', text)  # Remove numbers
+    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
+    return text.strip()
 
 
+def tokenize(text):
+    # Use NLTK's tokenizer for tokenization
+    tokenizer = RegexpTokenizer(r'\w+')
+    tokens = tokenizer.tokenize(text)
+    # Remove stopwords
+    stop_words = set(stopwords.words('english'))
+    tokens = [token for token in tokens if token not in stop_words]
+    # Stemming using Porter Stemmer
+    stemmer = PorterStemmer()
+    tokens = [stemmer.stem(token) for token in tokens]
+    return tokens
 def main():
     """Run administrative tasks."""
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "digital_library.settings")

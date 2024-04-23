@@ -1,4 +1,4 @@
-<!-- In search/templates/index.html -->
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,17 +6,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Research Paper Search</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.8rem;
+        }
+        .toggle-container {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+        }
+        .dark-mode-label {
+            cursor: pointer;
+        }
+        .dark-mode-checkbox {
+            display: none;
+        }
+        .dark-mode-checkbox:checked + body {
+            background-color: #333;
+            color: #fff;
+        }
+    </style>
+    <style>
+        body, .dark-mode {
+            background-color: #333; /* Dark background */
+            color: #fff; /* Light text */
+        }
+        .dark-mode .btn-primary {
+            background-color: #666; /* Darker button background */
+            border-color: #666;
+        }
+        .dark-mode .form-control {
+            background-color: #555; /* Darker form backgrounds */
+            color: #ddd; /* Lighter form text */
+        }
+        .dark-mode .card {
+            background-color: #424242; /* Dark mode card backgrounds */
+            color: #ccc; /* Light text for dark mode */
+        }
+        .toggle-container {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+        }
+        .form-group input[type="text"] {
+            width: 100%; /* Full width */
+            max-width: 500px; /* Maximum width */
+        }
+    </style>
+
+    
 </head>
-<body>
-    <div class="container">
+<body class="dark-mode">
+    <div class="container main-content">
+        <img src="{% static 'logo.png' %}" alt="Site Logo" style="max-width: 100px; margin-bottom: 20px;">
         <h1>Search for Research Papers</h1>
         <form method="post">
             {% csrf_token %}
             <div class="form-group">
-                <input type="text" name="search" class="form-control" placeholder="Enter search term">
+                <input type="text" name="search" class="form-control" placeholder="Enter search term" autofocus>
             </div>
             <button type="submit" class="btn btn-primary">Search</button>
         </form>
+    </div>
+    <div class="footer">
+        Made with love by Aditya, Ankit, Harshit, Kaif, Navvrat and Pavit.
+        <br>
+        The GitHub repo of the project can be found at <a href="https://github.com/AIgorhythmics/Digital-Library/tree/main">here</a>.
+        <br>
+        <a href="/privacy-policy">Privacy Policy</a>
+    </div>
+    <div class="toggle-container">
     </div>
 </body>
 </html>

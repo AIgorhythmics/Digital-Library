@@ -5,14 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Results</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
     <style>
-        body, .dark-mode {
+        body {
+            background-color: #fff; /* Default light background */
+            color: #333; /* Default dark text */
+        }
+        .dark-mode {
             background-color: #333; /* Dark background for dark mode */
             color: #fff; /* Light text for readability in dark mode */
         }
         .dark-mode .btn-primary, .dark-mode .btn-secondary {
             background-color: #666;
             border-color: #666;
+            color: #fff; /* Ensure text on buttons is also light */
         }
         .dark-mode .form-control {
             background-color: #555;
@@ -20,7 +27,10 @@
         }
         .dark-mode .card {
             background-color: #424242;
-            color: #ccc;
+            color: #ccc; /* Lighter text for readability */
+        }
+        .dark-mode .card .card-body, .dark-mode .card .card-title, .dark-mode .card .card-text {
+            color: #ddd; /* Ensure all text in the card is visible */
         }
         .toggle-container {
             position: fixed;
@@ -35,61 +45,78 @@
             pointer-events: none;
             opacity: 0.5;
         }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        
     </style>
+    
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
         function getSummary(paperId, buttonElement) {
-            console.log("Original paper ID:", paperId);
+            let encodedPaperId = encodeURIComponent(paperId);
+            $(buttonElement).html('<i class="fas fa-spinner loading-spinner"></i>').prop('disabled', true);
+            console.log("Encoded Paper ID:", encodedPaperId);
+            
         
-            var modifiedPaperId = paperId.replace(/_/g, '/');
-           
-            console.log("Modified paper ID:", modifiedPaperId);
-            console.log("Type of paperId:", typeof modifiedPaperId);
             $.ajax({
-                url: '/search/summary/' + modifiedPaperId,
+                url: '/search/summary/' + encodedPaperId,
                 type: 'GET',
                 success: function(response) {
-                    $(`#summary-${paperId}`).html(`<strong>Summary:</strong> ${response.summary}`);
-                    $(buttonElement).hide(); // Optionally hide the summary button
-                    $(`#rouge-${paperId}`).removeClass('btn-disabled'); // Enable ROUGE score button
+                    $(`[data-summary='${encodedPaperId}']`).html(`<strong>Summary:</strong> ${response.summary}`);
+                    $(buttonElement).hide();
+                    $(`[data-rouge='${encodedPaperId}']`).removeClass('btn-disabled');
                 },
-                error: function() {
-                    $(`#summary-${paperId}`).html(`<p>Summary could not be loaded.</p>`);
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error getting summary:", textStatus, errorThrown);
+                    $(`[data-summary='${encodedPaperId}']`).html(`<p>Summary could not be loaded.</p>`);
                 }
             });
         }
         
-        
-
         function getROUGEScore(paperId) {
-            $.ajax({
-                url: `/rouge-score/${encodeURIComponent(paperId)}/`,
-                type: 'GET',
-                success: function(response) {
-                    $(`#rouge-${paperId}`).html(`ROUGE Score: ${response.score}`);
-                },
-                error: function() {
-                    $(`#rouge-${paperId}`).html(`Failed to load ROUGE score.`);
-                }
-            });
-        }
-
-        function displayWordCloud(paperId) {
-            let modifiedPaperId = paperId.replace('/', '_')
             let encodedPaperId = encodeURIComponent(paperId);
             $.ajax({
-                url: `/wordcloud/${encodedPaperId}/`,
+                url: '/search/rouge-score/' + encodedPaperId,
                 type: 'GET',
                 success: function(response) {
-                    $(`#wordcloud-${paperId}`).html(`<img src="data:image/png;base64,${response.image}" alt="WordCloud">`);
+                    let scores = response.score[0]; // Assuming the score array always contains at least one element
+                    let displayText = `<strong>ROUGE Scores:</strong><br>
+                                       ROUGE-1: Recall: ${scores['rouge-1'].r.toFixed(2)}, Precision: ${scores['rouge-1'].p.toFixed(2)}, F-Score: ${scores['rouge-1'].f.toFixed(2)}<br>
+                                       ROUGE-2: Recall: ${scores['rouge-2'].r.toFixed(2)}, Precision: ${scores['rouge-2'].p.toFixed(2)}, F-Score: ${scores['rouge-2'].f.toFixed(2)}<br>
+                                       ROUGE-L: Recall: ${scores['rouge-l'].r.toFixed(2)}, Precision: ${scores['rouge-l'].p.toFixed(2)}, F-Score: ${scores['rouge-l'].f.toFixed(2)}`;
+                    $(`[data-rouge='${encodedPaperId}']`).html(displayText);
                 },
-                error: function() {
-                    $(`#wordcloud-${paperId}`).html(`Failed to load wordcloud.`);
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error getting ROUGE score:", textStatus, errorThrown);
+                    $(`[data-rouge='${encodedPaperId}']`).html(`Failed to load ROUGE score.`);
                 }
             });
         }
-
-        function toggleDarkMode() {
+        
+        
+        function displayWordCloud(paperId) {
+            let encodedPaperId = encodeURIComponent(paperId);
+            $.ajax({
+                url: '/search/wordcloud/' + encodedPaperId,
+                type: 'GET',
+                success: function(response) {
+                    $(`[data-wordcloud='${encodedPaperId}']`).html(`<img src="data:image/png;base64,${response.image}" alt="WordCloud">`);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error getting wordcloud:", textStatus, errorThrown);
+                    $(`[data-wordcloud='${encodedPaperId}']`).html(`Failed to load wordcloud.`);
+                }
+            });
+        }
+        
+         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
         }
     </script>
@@ -100,24 +127,28 @@
         {% if results %}
             {% for paper in results %}
                 <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ paper.title }}</h5>
-                        <p class="card-text">{{ paper.abstract }}</p>
-                        <button onclick="getSummary('{{ paper.id }}', this)">Get Summary</button>
-                        <div id="summary-{{ paper.id }}" style="margin-top: 20px;"></div>
-                        {% if forloop.counter <= 3 %}
-                        <button id="rouge-{{ paper.id }}" class="btn btn-secondary btn-disabled" onclick="getROUGEScore('{{ paper.id }}')">ROUGE Score</button>
-                        {% endif %}
-                        <button onclick="displayWordCloud('{{ paper.id }}')">Display WordCloud</button>
-                        <div id="wordcloud-{{ paper.id }}" style="margin-top: 20px;"></div>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ paper.title }}</h5>
+                            <p class="card-text">{{ paper.abstract }}</p>
+                            <button onclick="getSummary('{{ paper.id|urlencode }}', this)">Get Summary</button>
+                            <div data-summary="{{ paper.id|urlencode }}" style="margin-top: 20px;"></div>
+                            
+                                <button class="btn btn-secondary" onclick="getROUGEScore('{{ paper.id|urlencode }}')">ROUGE Score</button>
+                                <div data-rouge="{{ paper.id|urlencode }}" style="margin-top: 20px;"></div> <!-- Display ROUGE scores here -->
+                            
+                            <button onclick="displayWordCloud('{{ paper.id|urlencode }}')">Display WordCloud</button>
+                            <div data-wordcloud="{{ paper.id|urlencode }}" style="margin-top: 20px;"></div>
+                        </div>
                     </div>
-                </div>
             {% endfor %}
         {% else %}
             <p>No results found</p>
         {% endif %}
         <a href="{% url 'index' %}" class="btn btn-primary">New Search</a>
     </div>
+    
+    
     <div class="toggle-container">
         <label class="dark-mode-label">
             Dark Mode: <input type="checkbox" onclick="toggleDarkMode()" checked>

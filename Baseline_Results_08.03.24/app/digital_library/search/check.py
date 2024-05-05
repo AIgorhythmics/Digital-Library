@@ -1,68 +1,45 @@
-id = 'math_0503092'
-from wordcloud import WordCloud
-import base64
-import urllib
-from io import BytesIO
-import numpy as np
+
+from adapters import AutoAdapterModel
+from transformers import AutoTokenizer
+import arxiv
+import json
+import torch
 import pandas as pd
-import fitz
 import requests
+import numpy as np
 import re
+import pickle
+from sklearn.feature_extraction.text import CountVectorizer
+from scipy.sparse import csr_matrix
+from sklearn.preprocessing import normalize
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+from nltk.tokenize import RegexpTokenizer
+from sklearn.metrics.pairwise import cosine_similarity
 import os
+import fitz
+import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import TfidfVectorizer
-import os
-
-import os
-import requests
-import PyPDF2
-
-def download_and_extract_text(arxiv_id):
-    pdf_url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
-    try:
-        response = requests.get(pdf_url)
-        response.raise_for_status()  # Will raise an HTTPError for bad requests (400+)
-        pdf_path = f"{arxiv_id}.pdf"
-        with open(pdf_path, "wb") as f:
-            f.write(response.content)
-        
-        # Now extract text from the PDF
-        doc = fitz.open(pdf_path)
-        text = ""
-        for page in doc:
-            text += page.get_text()
-        return text
-    except requests.exceptions.HTTPError as e:
-        print(f"Failed to download or process the PDF: {e}")
-        return None
-    else:
-        raise Exception("Failed to download PDF")
-
-
-def wordcloud(paper_id):
-    paper_id = urllib.parse.unquote(paper_id)
-    try:
-        print(paper_id)
-        text = download_and_extract_text(paper_id)
-        print(text)
-        image = generate_word_cloud(text)
-        buffered = BytesIO()
-        image.save(buffered, format="PNG")
-        image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
-        print(({'image': image_base64}))
-    except Exception as e:
-        print({'error': str(e)}, status=500)
-    
+from wordcloud import WordCloud
+from io import BytesIO
+import base64
 
 def preprocess_text(text):
     text = re.sub(r'##.*', '', text)
     text = re.sub(r'.*?:\s*\n', '', text)
     text = re.sub(r'\*', '', text)
     lines = text.split('\n')
-    lines = [line.strip() for line in lines if line.strip()]  
+    return [line.strip() for line in lines if line.strip()]
+
+def generate_word_cloud(paper_id):
+    paper_text = download_and_extract_text(paper_id)
+    if paper_text is None:
+        return None
     
-def generate_word_cloud(text):
-    text = preprocess_text(text)
-    combined_text = " ".join(text)
+    paper_text = preprocess_text(paper_text)
+    combined_text = " ".join(paper_text)
 
     vectorizer = TfidfVectorizer(stop_words='english')
     tfidf_matrix = vectorizer.fit_transform([combined_text])
@@ -85,4 +62,40 @@ def generate_word_cloud(text):
 
     return image_base64
 
-wordcloud(id)
+import os
+
+def download_and_extract_text(arxiv_id):
+    pdf_path = f"{arxiv_id}.pdf"
+    
+    # Check if file already exists
+    if os.path.exists(pdf_path):
+        with open(pdf_path, "rb") as f:
+            pdf_content = f.read()
+    else:
+        pdf_url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
+        try:
+            response = requests.get(pdf_url)
+            response.raise_for_status()  # Will raise an HTTPError for bad requests (400+)
+            with open(pdf_path, "wb") as f:
+                f.write(response.content)
+            pdf_content = response.content
+        except requests.exceptions.HTTPError as e:
+            print(f"Failed to download or process the PDF: {e}")
+            return None
+    
+    # Now extract text from the PDF content
+    doc = fitz.open(pdf_path)
+    text = ""
+    for page in doc:
+        text += page.get_text()
+    doc.close()  # Close the document
+    
+    return text
+
+    
+paper_id = "1707.09562"
+image = generate_word_cloud(paper_id)
+image_data = base64.b64decode(image)
+# save the image to a file
+with open("E:\\wordcloud.png", "wb") as f:
+    f.write(image_data)

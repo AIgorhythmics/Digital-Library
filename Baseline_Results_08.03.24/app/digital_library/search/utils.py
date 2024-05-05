@@ -130,24 +130,32 @@ import requests
 import fitz  # PyMuPDF
 
 def download_and_extract_text(arxiv_id):
-
-    pdf_url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
-    try:
-        response = requests.get(pdf_url)
-        response.raise_for_status()  # Will raise an HTTPError for bad requests (400+)
-        pdf_path = f"{arxiv_id}.pdf"
-        with open(pdf_path, "wb") as f:
-            f.write(response.content)
-        
-        # Now extract text from the PDF
-        doc = fitz.open(pdf_path)
-        text = ""
-        for page in doc:
-            text += page.get_text()
-        return text
-    except requests.exceptions.HTTPError as e:
-        print(f"Failed to download or process the PDF: {e}")
-        return None
+    pdf_path = f"{arxiv_id}.pdf"
+    
+    # Check if file already exists
+    if os.path.exists(pdf_path):
+        with open(pdf_path, "rb") as f:
+            pdf_content = f.read()
+    else:
+        pdf_url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
+        try:
+            response = requests.get(pdf_url)
+            response.raise_for_status()  # Will raise an HTTPError for bad requests (400+)
+            with open(pdf_path, "wb") as f:
+                f.write(response.content)
+            pdf_content = response.content
+        except requests.exceptions.HTTPError as e:
+            print(f"Failed to download or process the PDF: {e}")
+            return None
+    
+    # Now extract text from the PDF content
+    doc = fitz.open(pdf_path)
+    text = ""
+    for page in doc:
+        text += page.get_text()
+    doc.close()  # Close the document
+    
+    return text
 import vertexai
 
 from vertexai.generative_models import GenerativeModel, Part, FinishReason
@@ -185,42 +193,51 @@ def generate_summary(arxiv_id):
 
     # Concatenate the responses and return the summary
     summary_text = "".join(response.text for response in responses)
-    print(summary_text)
     return summary_text
 
-def generate_word_cloud(text):
-    text = preprocess_text(text)
-    combined_text = " ".join(text)
+def generate_word_cloud(paper_id):
+    paper_text = download_and_extract_text(paper_id)
+    if paper_text is None:
+        return None
+    
+    paper_text = preprocess_text(paper_text)
+    combined_text = " ".join(paper_text)
 
     vectorizer = TfidfVectorizer(stop_words='english')
     tfidf_matrix = vectorizer.fit_transform([combined_text])
     feature_names = np.array(vectorizer.get_feature_names_out())
     tfidf_scores = np.array(tfidf_matrix.sum(axis=0)).flatten()
-
+   
     sorted_indices = np.argsort(tfidf_scores)[::-1]
     top_features = feature_names[sorted_indices][:20]
-
+    print('top_features',top_features)
     # Generate word cloud
-    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(' '.join(top_features))
+    try:
+        wordcloud = WordCloud(width=800, height=400, background_color='white').generate(' '.join(top_features))
+        print(type(wordcloud))  # Should be <class 'wordcloud.wordcloud.WordCloud'>
+    
+        wordcloud_image = wordcloud.to_image()
+        print(type(wordcloud_image))  # Should be <class 'PIL.Image.Image'>
+        image_io = BytesIO()
+        wordcloud.to_image().save(image_io, 'PNG')
+        image_io.seek(0)
 
-    # Save to BytesIO object
-    image_io = BytesIO()
-    wordcloud.to_image().save(image_io, 'PNG')
-    image_io.seek(0)  # Go to the beginning of the BytesIO stream
-
-    # Base64 encode
-    image_base64 = base64.b64encode(image_io.getvalue()).decode('utf-8')
-
-    return image_base64
-
+        image_base64 = base64.b64encode(image_io.getvalue()).decode('utf-8')
+        
+        return image_base64
+    except Exception as e:
+        print(f"Failed to generate word cloud: {e}")
+        return None
 def preprocess_text(text):
     text = re.sub(r'##.*', '', text)
     text = re.sub(r'.*?:\s*\n', '', text)
     text = re.sub(r'\*', '', text)
     lines = text.split('\n')
-    lines = [line.strip() for line in lines if line.strip()]
+    return [line.strip() for line in lines if line.strip()]
 
-    return lines
+from rouge import Rouge
 
-def calculate_rouge_score(text):
-    pass
+def calculate_rouge_score(abstract, summary):
+    rouge = Rouge()
+    scores = rouge.get_scores(summary, abstract)
+    return scores

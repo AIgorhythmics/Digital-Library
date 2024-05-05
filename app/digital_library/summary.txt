@@ -1,14 +1,14 @@
-<h2>Machine Learning as a Catalyst for Value-Based Health Care: Summary</h2>
+<h2>MLBench: How Good Are Machine Learning Clouds? - A Summary</h2>
 <h3>Introduction</h3>
-<p>The paper highlights the significant issue of wasteful spending in healthcare, reaching trillions of dollars and impacting care delivery, overtreatment, and administrative complexities.  This has led to the rise of value-based care models, prioritizing maximizing patient outcomes per unit cost. However, the complexities of medical decision-making and data integration lead to errors and hinder achieving high-value care. The authors propose machine learning as a solution to reduce errors, improve predictions, and ultimately support value-based healthcare. </p>
-<h3>Results/Opportunities</h3>
-<p>The paper outlines various applications of machine learning in healthcare aligned with major categories of waste:</p>
+<p>The paper investigates the effectiveness of machine learning clouds (ML clouds) like Azure Machine Learning Studio and Amazon Machine Learning in handling real-world binary classification tasks. These platforms offer a declarative approach, where users specify the task and the cloud handles the implementation details. The study aims to assess the performance and limitations of such ML clouds compared to manually optimized solutions.</p>
+<h3>Results</h3>
 <ul>
-<li><strong>Administrative Complexity:</strong> Automating coding processes, forecasting resource needs, and optimizing resource allocation. </li>
-<li><strong>Pricing Failures:</strong>  Identifying patterns for faster drug discovery and detecting price anomalies.</li>
-<li><strong>Care Delivery Failures:</strong> Preventing adverse events through automatic flagging and identifying chronic disease risk factors.</li>
-<li><strong>Overtreatment and Inappropriate Care:</strong> Improving diagnoses through automated analysis of radiographic and pathological samples, and recommending optimal treatment plans. </li>
-<li><strong>Fraud:</strong> Detecting anomalous billing and utilization patterns.</li>
-<li><strong>Care Coordination Failures:</strong> Predicting readmission risks and automating home medical equipment needs.</li>
+<li><strong>ML clouds lag behind top-performing solutions</strong>: Using Kaggle competitions as a benchmark, the study reveals that even the best models on ML clouds struggle to match the quality of top-ranked Kaggle solutions, especially when considering stringent quality tolerance levels. </li>
+<li><strong>Model diversity is crucial</strong>: Azure, offering a wider range of models compared to Amazon's single logistic regression option, demonstrates significantly better performance across various tasks.</li>
+<li><strong>Feature engineering matters</strong>: A comparison between models trained on raw features and features engineered by winning Kaggle code highlights the critical role of feature engineering in achieving high quality. ML clouds currently lack automated feature engineering capabilities, limiting their effectiveness. </li>
+<li><strong>Hyperparameter tuning plays a role, but less than model selection</strong>: While hyperparameter tuning generally improves performance, its impact is less significant than choosing the right model for the task. Balancing model selection and hyperparameter tuning is a key challenge for ML cloud users.</li>
+<li><strong>Nonlinear models excel on large datasets</strong>: For smaller datasets, linear models perform well, but as dataset size increases, nonlinear models like boosted decision trees show superior performance.</li>
+<li><strong>Ensemble methods hold the key</strong>: The study suggests that the gap between ML clouds and top-performing solutions can be narrowed by incorporating well-tuned ensemble models, as evidenced by the success of such methods in Kaggle competitions.</li>
 </ul>
-<p>While acknowledging challenges like data availability, interpretability of algorithms, and ethical considerations, the authors emphasize the potential of machine learning in revolutionizing healthcare and achieving the goals of value-based care. </p>
+<h3>Conclusion</h3>
+<p>While ML clouds offer a convenient and accessible way to utilize machine learning, they still fall short of achieving the quality of manually optimized solutions, especially for demanding tasks. Addressing the lack of automated feature engineering and incorporating better ensemble models are promising directions for future development. </p>

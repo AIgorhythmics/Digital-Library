@@ -1,6 +1,17 @@
 # Digital-Library
 Application to search scientific papers and graphically summarize them using LLM using Information Retrieval concepts
 
+## Team Members
+- [Aditya Daipuria](https://github.com/addydaipuria)
+- [Ankit Kumar](https://github.com/ankitkat042)
+- [Harshit Sharma](https://www.instagram.com/harsh.it_shwarma/)
+- [Mohammad Kaif](https://github.com/169kaif)
+- [Navvrat Rao](https://github.com/nav-rtd)
+- [Pavit Singh](https://github.com/pait0709)
+
+## Demo Video
+![project_run](https://github.com/AIgorhythmics/Digital-Library/assets/79627254/26949b02-93f1-40fe-9863-c944410ffff1)
+
 ## What is the problem identified in this project?
 
 In this problem, we aim to build a search engine where the user inputs their query, and the search engine retrieves relevant research papers. After retrieving these results, we use an LLM and other AI techniques to summarise the paper. Apart from this, we also aim to present the summary in a graphical manner that makes it easier for the user to decide whether the paper is relevant to what he was looking for or not.

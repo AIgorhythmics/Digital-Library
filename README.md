@@ -64,5 +64,5 @@ The evaluation can be divided into quite a few parameters mentioned below:
   - Abstractive Summarization: Generate a summary by paraphrasing and rephrasing the content of the document using neural network-based models such as LLMs (Large Language Models) like GPT (Generative Pre-trained Transformer) or BERT (Bidirectional Encoder Representations from Transformers) or LLAMA.
 - Frontend Development: 
   - Web Development Frameworks: Using frameworks like Flask (Python), Express (Node.js), or Django (Python) for building the frontend of the search engine. 
-  - User Interface Design: A user-friendly interface to input search queries and display search results and summaries effectively.
+  - User Interface Design: A user-friendly interface to input search queries then display search results and summaries effectively.
 
